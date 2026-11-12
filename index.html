@@ -32,6 +32,22 @@
   .keys b{color:var(--acc);font-weight:600}
   button.big{margin-top:10px;font:inherit;font-size:17px;font-weight:700;padding:11px 28px;border-radius:10px;border:0;cursor:pointer;color:#0b0c1a;background:linear-gradient(90deg,#7cf4ff,#c06bff)}
   .hidden{display:none!important}
+  button.sec{margin-top:10px;font:inherit;font-size:15px;font-weight:600;padding:10px 20px;border-radius:10px;border:1px solid var(--line);background:#1d2048;color:var(--txt);cursor:pointer}
+  button.sec:hover{border-color:#7cf4ff}
+  .btnrow{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;align-items:center}
+  .btnrow.col{flex-direction:column;align-items:stretch;max-width:260px;margin:10px auto 0}
+  .btnrow.col button{margin-top:0}
+  #nameForm{margin:10px 0}
+  #nameForm .row{display:flex;gap:8px;justify-content:center;margin-top:4px}
+  #nameForm input{font:inherit;font-size:16px;padding:9px 12px;border-radius:10px;border:1px solid #7cf4ff;background:#0d0f24;color:var(--txt);width:170px;user-select:text;-webkit-user-select:text}
+  #nameForm .sec{margin-top:0}
+  #overWhy{color:#ff8a9a}
+  table.lb{width:100%;border-collapse:collapse;font-size:13px;margin:10px 0 4px;font-variant-numeric:tabular-nums}
+  table.lb th{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--dim);font-weight:600;padding:4px 5px;text-align:right}
+  table.lb td{padding:5px;border-top:1px solid var(--line);text-align:right}
+  table.lb th:nth-child(2),table.lb td:nth-child(2){text-align:left;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  table.lb tr.me td{color:#7cf4ff;font-weight:700}
+  .lbempty{color:var(--dim);font-size:13px;margin:12px 0}
   .themes{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin:4px 0 6px}
   .themes button{font:inherit;font-size:13px;padding:7px 12px;border-radius:8px;border:1px solid var(--line);background:#1d2048;color:var(--txt);cursor:pointer}
   .themes button.on{border-color:#7cf4ff;background:#26407a;box-shadow:0 0 0 1px #7cf4ff inset}
@@ -132,6 +148,7 @@
   <h1>Мультитетрис</h1>
   <p>Ты стоишь в центре комнаты. Вокруг три стены — левая, передняя и правая. Это одно поле, загнутое буквой «П»: фигуры свободно переезжают через углы.</p>
   <p>Каждая стена сжигает свои ряды отдельно. Собери один и тот же ряд на всех трёх стенах сразу — получишь <b style="color:#7cf4ff">КОЛЬЦО</b> и большой бонус.</p>
+  <p>Если хоть на одной стене кубики дойдут до самого верха — игра окончена.</p>
   <div class="keys">
     <b>← →</b><span>двигать вдоль стен</span>
     <b>↑ / X</b><span>повернуть по часовой</span>
@@ -142,6 +159,7 @@
     <b>V</b><span>камера: следить / обзор</span>
     <b>T</b><span>сменить стены</span>
     <b>M / N</b><span>музыка / звуки</span>
+    <b>P / Esc</b><span>пауза и меню (там же «Начать заново»)</span>
   </div>
   <div class="keys touchhelp">
     <b>Свайп ← →</b><span>двигать вдоль стен</span>
@@ -155,13 +173,38 @@
   <div class="themes">
     <button data-t="neon">Неон</button><button data-t="lego">LEGO</button><button data-t="glass">Стекло</button><button data-t="wood">Дерево</button><button data-t="space">Космос</button>
   </div>
-  <button class="big" id="bStart">Играть</button>
+  <div class="btnrow"><button class="big" id="bStart">Играть</button><button class="sec" id="bStartLB">Рекорды</button></div>
 </div></div>
 
 <div id="over" class="overlay hidden"><div class="card">
   <h1>Конец игры</h1>
+  <p id="overWhy"></p>
   <p id="overTxt"></p>
+  <form id="nameForm" class="hidden">
+    <div class="lbl">Новый рекорд! Ваше имя</div>
+    <div class="row"><input id="nameIn" maxlength="16" autocomplete="off" enterkeyhint="done"><button class="sec" type="submit">Сохранить</button></div>
+  </form>
+  <div id="overLB"></div>
   <button class="big" id="bAgain">Ещё раз</button>
+</div></div>
+
+<div id="pauseMenu" class="overlay hidden"><div class="card">
+  <h1>Пауза</h1>
+  <div class="btnrow col">
+    <button class="big" id="bResume">Продолжить</button>
+    <button class="sec" id="bRestart">Начать заново</button>
+    <button class="sec" id="bPauseLB">Рекорды</button>
+  </div>
+  <div class="lbl" style="margin-top:14px">Стены</div>
+  <div class="themes">
+    <button data-t="neon">Неон</button><button data-t="lego">LEGO</button><button data-t="glass">Стекло</button><button data-t="wood">Дерево</button><button data-t="space">Космос</button>
+  </div>
+</div></div>
+
+<div id="records" class="overlay hidden"><div class="card">
+  <h1>Рекорды</h1>
+  <div id="recLB"></div>
+  <button class="sec" id="bRecBack">Назад</button>
 </div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -316,7 +359,7 @@ const SND = (() => {
     get musicOn() { return musicOn; }, get sfxOn() { return sfxOn; },
   };
 })();
-function buzz(p) { if (SND.sfxOn && navigator.vibrate) try { navigator.vibrate(p); } catch (e) {} }
+function buzz(p) { if (isTouch && SND.sfxOn && navigator.vibrate && navigator.userActivation?.hasBeenActive !== false) try { navigator.vibrate(p); } catch (e) {} }
 const rnd = (a, b) => a + Math.random() * (b - a);
 
 // ---------- state ----------
@@ -401,8 +444,11 @@ function lock() {
   let top = false;
   for (const [s, y] of cellsOf(cur.m, cur.x, cur.y)) { if (y >= H) top = true; else grid[y][s] = col; }
   lastX = cur.x; cur = null; SND.play('lock');
-  if (top) { gameOver(); return; }
+  if (top) { gameOver('Фигура не поместилась на стене.'); return; }
   clearLines();
+  // any wall whose blocks reach the very top row ends the game
+  const topCell = grid[H - 1].findIndex(Boolean);
+  if (topCell >= 0) { gameOver(`${['Левая', 'Передняя', 'Правая'][Math.floor(topCell / WW)]} стена заполнилась до самого верха.`); return; }
   newPiece();
 }
 
@@ -443,13 +489,48 @@ function clearLines() {
   }
 }
 
-function gameOver() {
-  over = true; running = false; cur = null;
+function gameOver(why) {
+  over = true; running = false; cur = null; paused = false;
   SND.setPlaying(false); SND.play('over'); buzz(250);
-  if (score > best) { best = score; try { localStorage.setItem('tetris3w-best', best); } catch (e) {} }
-  document.getElementById('overTxt').innerHTML = `Очки: <b>${score}</b> · Линии: ${lines} · Кольца: ${rings}<br>Рекорд: ${best}`;
-  document.getElementById('over').classList.remove('hidden');
+  $('pauseMenu').classList.add('hidden');
+  $('overWhy').textContent = why || 'Новой фигуре некуда встать.';
+  $('overTxt').innerHTML = `Очки: <b>${score}</b> · Линии: ${lines} · Кольца: ${rings}`;
+  $('nameForm').classList.toggle('hidden', !qualifies(score));
+  $('overLB').innerHTML = lbHTML(-1);
+  $('over').classList.remove('hidden');
+  if (qualifies(score)) { $('nameIn').value = lastName(); if (!isTouch) setTimeout(() => $('nameIn').focus(), 50); }
 }
+
+// ---------- leaderboard (top 10, stored on this device) ----------
+const LB_KEY = 'multitetris-scores';
+function loadLB() { try { const a = JSON.parse(localStorage.getItem(LB_KEY)); return Array.isArray(a) ? a : []; } catch (e) { return []; } }
+function qualifies(s) { const a = loadLB(); return s > 0 && (a.length < 10 || s > a[a.length - 1].score); }
+function lastName() { try { return localStorage.getItem('multitetris-name') || 'Игрок'; } catch (e) { return 'Игрок'; } }
+function addLB(entry) {
+  const a = loadLB(); a.push(entry);
+  a.sort((x, y) => y.score - x.score); if (a.length > 10) a.length = 10;
+  try { localStorage.setItem(LB_KEY, JSON.stringify(a)); } catch (e) {}
+  return a.indexOf(entry);
+}
+function lbHTML(hl) {
+  const a = loadLB();
+  if (!a.length) return '<p class="lbempty">Пока пусто — сыграйте первую партию!</p>';
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const d = t => { const x = new Date(t); return String(x.getDate()).padStart(2, '0') + '.' + String(x.getMonth() + 1).padStart(2, '0'); };
+  return '<table class="lb"><tr><th>#</th><th>Имя</th><th>Очки</th><th>Линии</th><th>Кольца</th><th>Дата</th></tr>' +
+    a.map((r, i) => `<tr${i === hl ? ' class="me"' : ''}><td>${i + 1}</td><td>${esc(r.name)}</td><td>${r.score}</td><td>${r.lines}</td><td>${r.rings}</td><td>${d(r.date)}</td></tr>`).join('') +
+    '</table>';
+}
+function saveScore() {
+  if ($('nameForm').classList.contains('hidden')) return;
+  const name = ($('nameIn').value.trim() || 'Игрок').slice(0, 16);
+  try { localStorage.setItem('multitetris-name', name); } catch (e) {}
+  const pos = addLB({ name, score, lines, rings, theme: themeId, date: Date.now() });
+  $('nameForm').classList.add('hidden'); $('nameIn').blur();
+  $('overLB').innerHTML = lbHTML(pos);
+  if (pos === 0) toast('НОВЫЙ РЕКОРД!');
+}
+function showRecords() { $('recLB').innerHTML = lbHTML(-1); $('records').classList.remove('hidden'); }
 
 // ---------- HUD ----------
 const $ = id => document.getElementById(id);
@@ -784,7 +865,13 @@ function act(a) {
   if (a === 'music') { SND.toggleMusic(); audioBtns(); return; }
   if (a === 'sfx') { SND.toggleSfx(); audioBtns(); SND.play('click'); return; }
   if (a === 'theme') { applyTheme(THEME_IDS[(THEME_IDS.indexOf(themeId) + 1) % THEME_IDS.length]); toast(THEMES[themeId].name.toUpperCase()); return; }
-  if (a === 'pause') { if (running) { paused = !paused; $('bPause').textContent = paused ? '▶' : '⏸'; SND.setPlaying(!paused); SND.play('click'); if (paused) toast('ПАУЗА'); } return; }
+  if (a === 'pause') {
+    if (running) {
+      paused = !paused; $('bPause').textContent = paused ? '▶' : '⏸'; SND.setPlaying(!paused); SND.play('click');
+      $('pauseMenu').classList.toggle('hidden', !paused); if (!paused) $('records').classList.add('hidden');
+    }
+    return;
+  }
   if (!running || paused || !cur) return;
   if (a === 'left') { if (tryMove(-1, 0)) SND.play('move'); }
   else if (a === 'right') { if (tryMove(1, 0)) SND.play('move'); }
@@ -806,7 +893,10 @@ function audioBtns() {
 }
 audioBtns();
 addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return; // typing a name
   SND.init();
+  if (e.code === 'Escape' && !$('records').classList.contains('hidden')) { $('records').classList.add('hidden'); return; }
+  if (e.code === 'KeyR' && (paused || over)) { start(); return; }
   if ((e.code === 'Enter' || e.code === 'Space') && !running) { e.preventDefault(); start(); return; }
   const a = keymap[e.code]; if (!a) return;
   e.preventDefault();
@@ -867,13 +957,19 @@ try { savedTheme = localStorage.getItem('tetris3w-theme') || 'neon'; } catch (e)
 applyTheme(savedTheme);
 
 function start() {
-  $('start').classList.add('hidden'); $('over').classList.add('hidden');
+  saveScore(); // keep a pending record if the player restarts without pressing «Сохранить»
+  ['start', 'over', 'pauseMenu', 'records'].forEach(id => $(id).classList.add('hidden'));
   SND.init();
   if (isTouch && !document.fullscreenElement && document.documentElement.requestFullscreen) document.documentElement.requestFullscreen().catch(() => {});
   reset(); running = true; $('bPause').textContent = '⏸';
   SND.setTempo(1); SND.setPlaying(true);
 }
 $('bStart').onclick = start; $('bAgain').onclick = start;
+$('bResume').onclick = () => act('pause');
+$('bRestart').onclick = start;
+$('bPauseLB').onclick = showRecords; $('bStartLB').onclick = showRecords;
+$('bRecBack').onclick = () => $('records').classList.add('hidden');
+$('nameForm').addEventListener('submit', e => { e.preventDefault(); saveScore(); });
 
 // idle preview before start
 grid = Array.from({ length: H }, () => new Array(N).fill(0));
